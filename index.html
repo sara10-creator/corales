@@ -1338,22 +1338,52 @@
         function cargarMotor() {
           if (motor) return motor;
           motor = (async function () {
-            await Promise.all([
-              cargarScript(PYODIDE_URL + "pyodide.js"),
-              cargarScript(ORT_URL + "ort.min.js")
-            ]);
-            ort.env.wasm.wasmPaths = ORT_URL;
-            var sesion = ort.InferenceSession.create(MODELO_URL, { executionProviders: ["wasm"] });
-            var pyodide = await loadPyodide({ indexURL: PYODIDE_URL });
-            await pyodide.loadPackage(["numpy", "opencv-python", "scipy", "scikit-image"]);
-            var codigo = await (await fetch(CODIGO_URL)).text();
-            pyodide.runPython(codigo);
-            return {
-              pyodide: pyodide,
-              sesion: await sesion,
-              preparar: pyodide.globals.get("web_preparar"),
-              analizar: pyodide.globals.get("web_analizar")
-            };
+            async function descargar(url, que) {
+              var respuesta;
+              try {
+                respuesta = await fetch(url);
+              } catch (e) {
+                throw new Error("no se pudo descargar " + que + " (" + url + "). " +
+                  (location.protocol === "file:"
+                    ? "Abriste la página con doble clic: ábrela desde un servidor (Live Server o GitHub Pages)."
+                    : "Revisa la conexión a internet."));
+              }
+              if (!respuesta.ok) {
+                throw new Error("no se encontró " + que + " (" + url + ", error " + respuesta.status +
+                  "). Verifica que la carpeta esté subida junto al index.html.");
+              }
+              return respuesta;
+            }
+            var paso = "las herramientas (Pyodide y onnxruntime)";
+            try {
+              await Promise.all([
+                cargarScript(PYODIDE_URL + "pyodide.js"),
+                cargarScript(ORT_URL + "ort.min.js")
+              ]);
+              ort.env.wasm.wasmPaths = ORT_URL;
+              paso = "el modelo de segmentación";
+              var modelo = new Uint8Array(await (await descargar(MODELO_URL, "el modelo de segmentación")).arrayBuffer());
+              var sesion = ort.InferenceSession.create(modelo, { executionProviders: ["wasm"] });
+              paso = "el código del algoritmo";
+              var codigo = await (await descargar(CODIGO_URL, "el código del algoritmo")).text();
+              paso = "Python (Pyodide)";
+              var pyodide = await loadPyodide({ indexURL: PYODIDE_URL });
+              paso = "las librerías de Python (numpy, OpenCV, SciPy, scikit-image)";
+              await pyodide.loadPackage(["numpy", "opencv-python", "scipy", "scikit-image"]);
+              paso = "el código del algoritmo";
+              pyodide.runPython(codigo);
+              paso = "el modelo de segmentación";
+              return {
+                pyodide: pyodide,
+                sesion: await sesion,
+                preparar: pyodide.globals.get("web_preparar"),
+                analizar: pyodide.globals.get("web_analizar")
+              };
+            } catch (e) {
+              var texto = e && e.message ? e.message : String(e);
+              if (texto.indexOf("no se pudo descargar") === 0 || texto.indexOf("no se encontró") === 0) throw e;
+              throw new Error("falló al cargar " + paso + ": " + texto);
+            }
           })();
           motor.catch(function () {
             motor = null;
