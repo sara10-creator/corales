@@ -672,6 +672,177 @@
         line-height: 1.55;
       }
 
+      .analysis {
+        padding: 1.4rem;
+        border-top: 1px solid #d8d1c3;
+        background: var(--paper);
+      }
+
+      .analysis-status {
+        display: flex;
+        gap: 0.8rem;
+        align-items: center;
+        color: #66635b;
+        font-size: 0.85rem;
+        line-height: 1.5;
+      }
+
+      .analysis-status::before {
+        content: "";
+        flex: 0 0 auto;
+        width: 16px;
+        height: 16px;
+        border: 2px solid #d8d1c3;
+        border-top-color: var(--red);
+        border-radius: 50%;
+        animation: girar 0.9s linear infinite;
+      }
+
+      .analysis-status.is-done::before,
+      .analysis-status.is-error::before {
+        display: none;
+      }
+
+      .analysis-status.is-error {
+        color: var(--red);
+      }
+
+      @keyframes girar {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      .result-card {
+        padding: 1.3rem 1.4rem;
+        border: 1px solid var(--ink);
+        background: var(--cream);
+      }
+
+      .result-card span {
+        display: block;
+        color: var(--red);
+        font-size: 0.65rem;
+        font-weight: 600;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+
+      .result-card strong {
+        display: block;
+        margin-top: 0.4rem;
+        font-family: "Fraunces", serif;
+        font-size: clamp(1.6rem, 3vw, 2.2rem);
+        font-weight: 500;
+        line-height: 1.15;
+      }
+
+      .result-card p {
+        margin-top: 0.7rem;
+        color: #4d4a43;
+        font-size: 0.85rem;
+        line-height: 1.6;
+      }
+
+      .result-card.is-coral {
+        border-color: var(--red);
+        background: #f7e4df;
+      }
+
+      .result-card.is-falsa {
+        border-color: var(--green);
+        background: #e3ebe5;
+      }
+
+      .result-warning {
+        margin-top: 0.9rem;
+        padding-top: 0.8rem;
+        border-top: 1px solid rgba(25, 25, 21, 0.15);
+        font-weight: 600;
+      }
+
+      .steps-title {
+        margin: 1.8rem 0 0.9rem;
+        font-family: "Fraunces", serif;
+        font-size: 1.3rem;
+        font-weight: 500;
+      }
+
+      .steps-list {
+        display: grid;
+        gap: 0.7rem;
+        list-style: none;
+        counter-reset: paso;
+      }
+
+      .steps-list li {
+        position: relative;
+        padding: 0.9rem 1rem 0.9rem 3.2rem;
+        border: 1px solid #ddd6c8;
+        background: white;
+        counter-increment: paso;
+      }
+
+      .steps-list li::before {
+        content: counter(paso);
+        position: absolute;
+        top: 0.9rem;
+        left: 1rem;
+        display: grid;
+        width: 1.5rem;
+        height: 1.5rem;
+        place-items: center;
+        border-radius: 50%;
+        color: white;
+        background: var(--ink);
+        font-size: 0.72rem;
+        font-weight: 600;
+      }
+
+      .steps-list h4 {
+        font-size: 0.9rem;
+        font-weight: 600;
+      }
+
+      .steps-list p {
+        margin-top: 0.3rem;
+        color: #6d6a61;
+        font-size: 0.8rem;
+        line-height: 1.55;
+      }
+
+      .steps-list .step-data {
+        margin-top: 0.45rem;
+        color: var(--ink);
+        font-weight: 600;
+      }
+
+      .analysis-images {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.8rem;
+        margin-top: 1rem;
+      }
+
+      .analysis-images figure {
+        border: 1px solid #ddd6c8;
+        background: white;
+      }
+
+      .analysis-images img {
+        width: 100%;
+        aspect-ratio: 4 / 3;
+        object-fit: contain;
+        background: #191915;
+      }
+
+      .analysis-images figcaption {
+        padding: 0.55rem 0.7rem;
+        color: #55524a;
+        font-size: 0.74rem;
+        line-height: 1.4;
+      }
+
       .visually-hidden {
         position: absolute;
         width: 1px;
@@ -1025,8 +1196,9 @@
               serpiente?
             </h2>
             <p>
-              Toma una foto únicamente desde una distancia segura. Puedes revisarla aquí sin que
-              salga de tu dispositivo.
+              Toma una foto únicamente desde una distancia segura. El análisis separa la serpiente
+              del fondo, reconoce sus colores y aplica las reglas de los anillos para estimar si
+              es una coral verdadera o una falsa coral.
             </p>
           </div>
 
@@ -1039,6 +1211,24 @@
                   <strong id="preview-name"></strong>
                 </div>
                 <button type="button" id="clear-button">Cambiar foto</button>
+              </div>
+            </div>
+
+            <div class="analysis" id="analysis" hidden>
+              <p class="analysis-status" id="analysis-status" role="status" aria-live="polite"></p>
+              <div id="analysis-result" hidden>
+                <div class="result-card" id="result-card">
+                  <span>Resultado del análisis</span>
+                  <strong id="result-class"></strong>
+                  <p id="result-reason"></p>
+                  <p class="result-warning">
+                    Trata a toda serpiente con colores de coral como venenosa: no te acerques ni la
+                    manipules.
+                  </p>
+                </div>
+                <h3 class="steps-title">Paso a paso del procesamiento</h3>
+                <ol class="steps-list" id="steps-list"></ol>
+                <div class="analysis-images" id="analysis-images"></div>
               </div>
             </div>
 
@@ -1087,8 +1277,9 @@
             />
           </div>
           <p class="safety-caption">
-            Esta herramienta solo muestra una vista previa y no identifica especies. Ante una
-            emergencia, comunícate con la línea 123.
+            Proyecto académico de procesamiento digital de imágenes: la foto se analiza en tu
+            dispositivo y no se envía a ningún servidor. El resultado puede equivocarse y no
+            reemplaza a una persona experta. Ante una emergencia, comunícate con la línea 123.
           </p>
         </section>
 
@@ -1116,6 +1307,177 @@
         var cameraInput = document.getElementById("camera-input");
         var previewUrl = null;
 
+        // ===== Analisis: rembg (U2-Net ligero) + PDI clasico en Python (Pyodide) =====
+        var PYODIDE_URL = "https://cdn.jsdelivr.net/pyodide/v0.26.4/full/";
+        var ORT_URL = "https://cdn.jsdelivr.net/npm/onnxruntime-web@1.20.1/dist/";
+        var MODELO_URL = "modelos/u2netp.onnx";
+        var CODIGO_URL = "algoritmo/pdi_coral.py";
+        var LADO_MAX = 1024;
+
+        var analysis = document.getElementById("analysis");
+        var analysisStatus = document.getElementById("analysis-status");
+        var analysisResult = document.getElementById("analysis-result");
+        var resultCard = document.getElementById("result-card");
+        var stepsList = document.getElementById("steps-list");
+        var analysisImages = document.getElementById("analysis-images");
+        var motor = null;
+        var turno = 0;
+
+        function cargarScript(src) {
+          return new Promise(function (resolve, reject) {
+            var script = document.createElement("script");
+            script.src = src;
+            script.onload = resolve;
+            script.onerror = function () {
+              reject(new Error("No se pudo cargar " + src));
+            };
+            document.head.appendChild(script);
+          });
+        }
+
+        function cargarMotor() {
+          if (motor) return motor;
+          motor = (async function () {
+            await Promise.all([
+              cargarScript(PYODIDE_URL + "pyodide.js"),
+              cargarScript(ORT_URL + "ort.min.js")
+            ]);
+            ort.env.wasm.wasmPaths = ORT_URL;
+            var sesion = ort.InferenceSession.create(MODELO_URL, { executionProviders: ["wasm"] });
+            var pyodide = await loadPyodide({ indexURL: PYODIDE_URL });
+            await pyodide.loadPackage(["numpy", "opencv-python", "scipy", "scikit-image"]);
+            var codigo = await (await fetch(CODIGO_URL)).text();
+            pyodide.runPython(codigo);
+            return {
+              pyodide: pyodide,
+              sesion: await sesion,
+              preparar: pyodide.globals.get("web_preparar"),
+              analizar: pyodide.globals.get("web_analizar")
+            };
+          })();
+          motor.catch(function () {
+            motor = null;
+          });
+          return motor;
+        }
+
+        function estado(texto, clase) {
+          analysisStatus.textContent = texto;
+          analysisStatus.className = "analysis-status" + (clase ? " " + clase : "");
+        }
+
+        function esperarPintado() {
+          return new Promise(function (resolve) {
+            requestAnimationFrame(function () {
+              setTimeout(resolve, 30);
+            });
+          });
+        }
+
+        async function leerPixeles(file) {
+          var bitmap = await createImageBitmap(file);
+          var escala = Math.min(1, LADO_MAX / Math.max(bitmap.width, bitmap.height));
+          var ancho = Math.max(1, Math.round(bitmap.width * escala));
+          var alto = Math.max(1, Math.round(bitmap.height * escala));
+          var lienzo = document.createElement("canvas");
+          lienzo.width = ancho;
+          lienzo.height = alto;
+          var ctx = lienzo.getContext("2d");
+          ctx.drawImage(bitmap, 0, 0, ancho, alto);
+          if (bitmap.close) bitmap.close();
+          return { datos: ctx.getImageData(0, 0, ancho, alto).data, ancho: ancho, alto: alto };
+        }
+
+        function mostrarResultado(r) {
+          var esCoral = r.se_trata_como === "Coral verdadera";
+          var titulo = r.clase === "Sin resultado" ? "No se pudo analizar" : r.clase;
+          document.getElementById("result-class").textContent = titulo;
+          document.getElementById("result-reason").textContent = r.clase === "Sin resultado"
+            ? r.motivo + ". Por seguridad, trátala como coral verdadera."
+            : r.motivo;
+          resultCard.className = "result-card " + (esCoral ? "is-coral" : "is-falsa");
+
+          stepsList.innerHTML = "";
+          r.pasos.forEach(function (paso) {
+            var li = document.createElement("li");
+            var h = document.createElement("h4");
+            h.textContent = paso.titulo;
+            var p = document.createElement("p");
+            p.textContent = paso.pdi;
+            var d = document.createElement("p");
+            d.className = "step-data";
+            d.textContent = paso.dato;
+            li.append(h, p, d);
+            stepsList.appendChild(li);
+          });
+
+          var textos = {
+            cuerpo: "Segmentación: la serpiente separada del fondo",
+            colores: "Máscaras de color: negro, rojo, amarillo y blanco",
+            corona: "Corona del rojo (dilatación + AND) en verde"
+          };
+          analysisImages.innerHTML = "";
+          Object.keys(textos).forEach(function (clave) {
+            if (!r.imagenes[clave]) return;
+            var fig = document.createElement("figure");
+            var img = document.createElement("img");
+            img.src = r.imagenes[clave];
+            img.alt = textos[clave];
+            var cap = document.createElement("figcaption");
+            cap.textContent = textos[clave];
+            fig.append(img, cap);
+            analysisImages.appendChild(fig);
+          });
+          analysisResult.hidden = false;
+        }
+
+        async function analizarFoto(file) {
+          var miTurno = ++turno;
+          analysis.hidden = false;
+          analysisResult.hidden = true;
+          try {
+            estado(motor ? "Preparando el análisis…" : "Cargando las herramientas de análisis (la primera vez tarda unos segundos)…");
+            var m = await cargarMotor();
+            if (miTurno !== turno) return;
+
+            estado("Separando la serpiente del fondo (segmentación)…");
+            await esperarPintado();
+            var foto = await leerPixeles(file);
+            var entradaPy = m.preparar(foto.datos, foto.ancho, foto.alto);
+            var bytes = entradaPy.toJs();
+            entradaPy.destroy();
+            var entrada = new Float32Array(bytes.slice().buffer);
+            var tensor = new ort.Tensor("float32", entrada, [1, 3, 320, 320]);
+            var feeds = {};
+            feeds[m.sesion.inputNames[0]] = tensor;
+            var salida = await m.sesion.run(feeds);
+            var prediccion = salida[m.sesion.outputNames[0]].data;
+            if (miTurno !== turno) return;
+
+            estado("Analizando colores y anillos…");
+            await esperarPintado();
+            var r = JSON.parse(m.analizar(prediccion));
+            if (miTurno !== turno) return;
+            estado("Análisis terminado.", "is-done");
+            mostrarResultado(r);
+          } catch (error) {
+            if (miTurno !== turno) return;
+            console.error(error);
+            estado("No se pudo analizar la foto: " + (error && error.message ? error.message : error), "is-error");
+          }
+        }
+
+        // Empieza a descargar las herramientas cuando la persona llega a la seccion de fotos
+        if ("IntersectionObserver" in window) {
+          var vigia = new IntersectionObserver(function (entradas) {
+            if (entradas.some(function (e) { return e.isIntersecting; })) {
+              vigia.disconnect();
+              cargarMotor().catch(function () {});
+            }
+          }, { rootMargin: "300px" });
+          vigia.observe(document.getElementById("observar"));
+        }
+
         document.getElementById("start-button").addEventListener("click", function () {
           shell.classList.add("has-started");
           intro.classList.add("intro-leaving");
@@ -1135,6 +1497,7 @@
           panel.classList.add("has-preview");
           previewWrap.hidden = false;
           panelEmpty.hidden = true;
+          analizarFoto(file);
         }
 
         function clearPhoto() {
@@ -1147,6 +1510,8 @@
           panelEmpty.hidden = false;
           uploadInput.value = "";
           cameraInput.value = "";
+          turno += 1;
+          analysis.hidden = true;
         }
 
         uploadInput.addEventListener("change", selectPhoto);
