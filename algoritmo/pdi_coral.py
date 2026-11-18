@@ -821,6 +821,36 @@ def _num(valor):
     return "-" if np.isnan(valor) else f"{valor:.2f}"
 
 
+def parece_serpiente(r):
+    # Verificacion con PDI clasico antes de aplicar las reglas:
+    # 1. Tamano: lo que se separo del fondo debe ocupar al menos el 1 % de la imagen.
+    # 2. Color: al menos dos colores de coral (negro, rojo, claro) con 5 % o mas del cuerpo.
+    # 3. Anillos: al menos 3 franjas negras separadas (componentes conectados) y un recorrido
+    #    del eje medial que alterne colores varias veces.
+    # El patron rabo de aji (cuerpo casi negro) se acepta directamente.
+    cuerpo = r["cuerpo"]
+    if np.count_nonzero(cuerpo) < 0.01 * cuerpo.size:
+        return False, "Lo que se separó del fondo es demasiado pequeño"
+
+    et = r["etiquetas"]
+    if es_patron_rabo_de_aji(r["colores"]):
+        return True, ""
+
+    total = max(1, np.count_nonzero(cuerpo))
+    negro = np.count_nonzero(et == NEGRO) / total
+    rojo = np.count_nonzero(et == ROJO) / total
+    claro = np.count_nonzero(np.isin(et, (AMARILLO, BLANCO))) / total
+    if sum(v >= 0.05 for v in (negro, rojo, claro)) < 2:
+        return False, "No se encontraron los colores de una serpiente coral"
+
+    mascara_negra = (et == NEGRO).astype(np.uint8)
+    _, _, est, _ = cv2.connectedComponentsWithStats(mascara_negra, connectivity=8)
+    franjas = int(np.sum(est[1:, cv2.CC_STAT_AREA] >= (0.5 * r["escala"]) ** 2))
+    if franjas < 3 or len(r.get("secuencia", "")) < 4:
+        return False, "No se encontraron anillos de colores a lo largo del cuerpo"
+    return True, ""
+
+
 def web_preparar(rgba, ancho, alto):
     # Paso 1 de PDI: la foto llega del navegador (RGBA), se pasa a BGR y se limita el tamano.
     datos = rgba.to_py() if hasattr(rgba, "to_py") else rgba     # en el navegador llega un Uint8Array
@@ -860,6 +890,12 @@ def web_analizar(prediccion):
         pasos.append({"titulo": "Resultado", "pdi": r["patron"],
                       "dato": "Por seguridad se trata como coral verdadera."})
         return json.dumps({"clase": clase, "se_trata_como": "Coral verdadera", "motivo": r["patron"],
+                           "pasos": pasos, "imagenes": imagenes, "medidas": {}})
+
+    serpiente, razon = parece_serpiente(r)
+    if not serpiente:
+        pasos.append({"titulo": "Resultado", "pdi": razon, "dato": "Sin resultado"})
+        return json.dumps({"clase": "Sin resultado", "se_trata_como": "Sin resultado", "motivo": razon,
                            "pasos": pasos, "imagenes": imagenes, "medidas": {}})
 
     et = r["etiquetas"]
