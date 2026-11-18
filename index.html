@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Coral · Serpientes coral de Colombia</title>
+    <title>Conocer es proteger · Serpientes coral de Colombia</title>
     <meta
       name="description"
       content="Explora las serpientes coral de Colombia, promueve su protección y permite subir o tomar fotos para ayudar a reconocerlas."
@@ -843,6 +843,38 @@
         line-height: 1.4;
       }
 
+      .photo-tips {
+        margin-top: 1.8rem;
+        padding: 1.2rem 1.3rem;
+        border-left: 3px solid var(--red);
+        background: var(--paper);
+      }
+
+      .photo-tips h3 {
+        font-size: 0.72rem;
+        font-weight: 600;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--red);
+      }
+
+      .photo-tips ul {
+        display: grid;
+        gap: 0.8rem;
+        margin-top: 0.8rem;
+        padding-left: 1.1rem;
+      }
+
+      .photo-tips li {
+        color: #4d4a43;
+        font-size: 0.88rem;
+        line-height: 1.6;
+      }
+
+      .photo-tips strong {
+        color: var(--ink);
+      }
+
       .visually-hidden {
         position: absolute;
         width: 1px;
@@ -1025,9 +1057,9 @@
         <div class="intro-copy">
           <span class="eyebrow">Fauna colombiana</span>
           <h1>
-            Conoce antes
+            Conocer es
             <br />
-            de temer.
+            proteger.
           </h1>
         </div>
         <svg
@@ -1196,10 +1228,22 @@
               serpiente?
             </h2>
             <p>
-              Toma una foto únicamente desde una distancia segura. El análisis separa la serpiente
-              del fondo, reconoce sus colores y aplica las reglas de los anillos para estimar si
-              es una coral verdadera o una falsa coral.
+              Sube una foto y estimaremos si se trata de una coral verdadera o de una falsa coral
+              a partir de sus colores y del orden de sus anillos.
             </p>
+            <div class="photo-tips">
+              <h3>Recomendaciones para la foto</h3>
+              <ul>
+                <li>
+                  <strong>Toma una distancia prudente.</strong> No te acerques ni la muevas para
+                  conseguir una mejor imagen; usa el zoom de tu cámara.
+                </li>
+                <li>
+                  <strong>Trata de que se vea gran parte del cuerpo.</strong> Mientras más anillos
+                  aparezcan en la foto, más confiable es el resultado.
+                </li>
+              </ul>
+            </div>
           </div>
 
           <div class="photo-panel" id="photo-panel">
@@ -1220,15 +1264,11 @@
                 <div class="result-card" id="result-card">
                   <span>Resultado del análisis</span>
                   <strong id="result-class"></strong>
-                  <p id="result-reason"></p>
                   <p class="result-warning">
                     Trata a toda serpiente con colores de coral como venenosa: no te acerques ni la
                     manipules.
                   </p>
                 </div>
-                <h3 class="steps-title">Paso a paso del procesamiento</h3>
-                <ol class="steps-list" id="steps-list"></ol>
-                <div class="analysis-images" id="analysis-images"></div>
               </div>
             </div>
 
@@ -1241,7 +1281,7 @@
               </div>
               <div>
                 <h3>Sube una foto o usa tu cámara</h3>
-                <p>Formatos JPG, PNG o HEIC. No te acerques para conseguir una mejor imagen.</p>
+                <p>Formatos JPG o PNG. No te acerques para conseguir una mejor imagen.</p>
               </div>
               <div class="photo-actions">
                 <button type="button" class="primary-action" id="upload-button">
@@ -1318,8 +1358,6 @@
         var analysisStatus = document.getElementById("analysis-status");
         var analysisResult = document.getElementById("analysis-result");
         var resultCard = document.getElementById("result-card");
-        var stepsList = document.getElementById("steps-list");
-        var analysisImages = document.getElementById("analysis-images");
         var motor = null;
         var turno = 0;
 
@@ -1390,44 +1428,9 @@
 
         function mostrarResultado(r) {
           var esCoral = r.se_trata_como === "Coral verdadera";
-          var titulo = r.clase === "Sin resultado" ? "No se pudo analizar" : r.clase;
+          var titulo = r.clase === "Sin resultado" ? "Posible coral verdadera" : r.clase;
           document.getElementById("result-class").textContent = titulo;
-          document.getElementById("result-reason").textContent = r.clase === "Sin resultado"
-            ? r.motivo + ". Por seguridad, trátala como coral verdadera."
-            : r.motivo;
           resultCard.className = "result-card " + (esCoral ? "is-coral" : "is-falsa");
-
-          stepsList.innerHTML = "";
-          r.pasos.forEach(function (paso) {
-            var li = document.createElement("li");
-            var h = document.createElement("h4");
-            h.textContent = paso.titulo;
-            var p = document.createElement("p");
-            p.textContent = paso.pdi;
-            var d = document.createElement("p");
-            d.className = "step-data";
-            d.textContent = paso.dato;
-            li.append(h, p, d);
-            stepsList.appendChild(li);
-          });
-
-          var textos = {
-            cuerpo: "Segmentación: la serpiente separada del fondo",
-            colores: "Máscaras de color: negro, rojo, amarillo y blanco",
-            corona: "Corona del rojo (dilatación + AND) en verde"
-          };
-          analysisImages.innerHTML = "";
-          Object.keys(textos).forEach(function (clave) {
-            if (!r.imagenes[clave]) return;
-            var fig = document.createElement("figure");
-            var img = document.createElement("img");
-            img.src = r.imagenes[clave];
-            img.alt = textos[clave];
-            var cap = document.createElement("figcaption");
-            cap.textContent = textos[clave];
-            fig.append(img, cap);
-            analysisImages.appendChild(fig);
-          });
           analysisResult.hidden = false;
         }
 
