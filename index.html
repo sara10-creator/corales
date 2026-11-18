@@ -1265,6 +1265,7 @@
                 <div class="result-card" id="result-card">
                   <span>Resultado del análisis</span>
                   <strong id="result-class"></strong>
+                  <p id="result-note" hidden></p>
                   <p class="result-warning">
                     Trata a toda serpiente con colores de coral como venenosa: no te acerques ni la
                     manipules.
@@ -1458,10 +1459,19 @@
         }
 
         function mostrarResultado(r) {
-          var esCoral = r.se_trata_como === "Coral verdadera";
-          var titulo = r.clase === "Sin resultado" ? "Posible coral verdadera" : r.clase;
-          document.getElementById("result-class").textContent = titulo;
-          resultCard.className = "result-card " + (esCoral ? "is-coral" : "is-falsa");
+          var nota = document.getElementById("result-note");
+          if (r.clase === "Sin resultado") {
+            document.getElementById("result-class").textContent = "Sin resultado";
+            nota.textContent = "No reconocimos una serpiente con anillos en la foto. Intenta con otra " +
+              "imagen tomada a distancia donde se vea gran parte del cuerpo.";
+            nota.hidden = false;
+            resultCard.className = "result-card";
+          } else {
+            var esCoral = r.se_trata_como === "Coral verdadera";
+            document.getElementById("result-class").textContent = r.clase;
+            nota.hidden = true;
+            resultCard.className = "result-card " + (esCoral ? "is-coral" : "is-falsa");
+          }
           analysisResult.hidden = false;
         }
 
